@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- <meta charset="ISO-8859-1"> -->
+<!-- <title>Insert title here</title> -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+</head>
+<body>
+<p>"How do you wish to find them? ID, Name, Current "</p>
+<div class="container">
+<form name = "FindForm" method ="get" action ="HRS">	
+	<div class="form-group">
+	<p>Please Enter The Following Info:</p>
+<!-- 	<label for="c">Please Enter The Following Info:</label> -->
+	<label for="first">First Name:</label><input type="text" class="form-control" name="first">
+	<label for="last">Last Name:</label><input type="text" class="form-control" name="last">
+	<label for="phone">Phone Number</label><input type="text" class="form-control" name="phone">
+	<label for="address">Address:</label><input type="text" class="form-control" name="address">
+	<label for="city">City:</label><input type="text" class="form-control" name="city">
+	<label for="state"> State:  (Ex: TN)</label><input type="text" class="form-control" name="state">
+	<label for="zip">Zip:</label><input type="text" class="form-control" name="zip">
+	<label for="checkin">Checkin Date:</label><input type="text" class="form-control" name="checkin">
+	<label for="checkout">Checkout Date:</label><input type="text" class="form-control" name="checkout">
+	<button type="submit" class="btn btn-default">Submit</button>
+	</div>
+</form>
+</div>
+</body>
+</html>

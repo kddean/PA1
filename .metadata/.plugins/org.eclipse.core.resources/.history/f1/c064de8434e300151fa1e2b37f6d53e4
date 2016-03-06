@@ -1,0 +1,110 @@
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class HRS
+ */
+@WebServlet(description = "Servlet for the Hotel Reservation System", urlPatterns = { "/HRS" })
+public class HRS extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	Scanner s = new Scanner(System.in);
+	String a = "";
+	String input = "";
+	int input2;   
+	
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public HRS() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.getWriter().append("Served at: ").append(request.getContextPath());
+		RequestDispatcher v = request.getRequestDispatcher("/HomePage.html");
+		v.forward(request, response);
+		//a = request.getParameter("cmmd");
+		
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		PrintWriter out = response.getWriter();
+		a = request.getParameter("cmmd");
+		response.setContentType("text/html");
+		//doGet(request, response);
+		if(a.equals("Create Customer")){
+			
+		}
+		else if(a.equals("Reserve Room")){
+			
+		}
+		else if(a.equals("Create Payment")){
+			
+		}
+		else if(a.equals("Get Customer")){
+			 response.getWriter().println("<html>" + "<body>" + "How do you wish to find them? ID, Name, Current " + "<input type=" + "text" + "name= " 
+	+	"in  />"
+		    +    "<input type=" + "submit value=" + "Submit />" +  "</body></html>");
+			String b = request.getParameter("in");
+			
+			if(b.equals("ID")){
+				out.println("<html><body>" + "Works" + "</body></html>");
+			}
+			else if(b.equals("Name")){
+				out.println("<html><body>" + "Works" + "</body></html>");
+			}
+			else if(b.equals("Current")){
+				out.println("<html><body>" + "Works" + "</body></html>");
+			}
+			else
+				System.out.println("That's not an option.");
+			
+		}
+		else if(a.equals("Get Transactions")){
+			
+		}
+		else if(a.equals("Get Vacancies")){
+			
+		}
+		else if(a.equals("Get Reservations")){
+			
+		}
+		else{
+			System.out.println("That's not an option.");
+		}
+	}
+
+	/**
+	 * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
+	 */
+	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+	}
+
+	/**
+	 * @see HttpServlet#doDelete(HttpServletRequest, HttpServletResponse)
+	 */
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+	}
+
+}

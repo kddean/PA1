@@ -1,0 +1,229 @@
+
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Scanner;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+
+
+/**
+ * Servlet implementation class HRS
+ */
+@WebServlet(description = "Servlet for the Hotel Reservation System", urlPatterns = { "/HRS" })
+public class HRS extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	Scanner s = new Scanner(System.in);
+	String a = "";
+	String input = "";
+	int input2;   
+	public MySqlConnector con = new MySqlConnector("localhost/HRS");
+	
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public HRS() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.getWriter().append("Served at: ").append(request.getContextPath());
+		RequestDispatcher v = request.getRequestDispatcher("/HomePage.html");
+		v.forward(request, response);
+		a = request.getParameter("cmmd");
+		
+		if(a.equals("Create Customer")){
+		    v = request.getRequestDispatcher("/customer.html");
+			v.forward(request, response);
+		}
+		else if(a.equals("Reserve Room")){
+			v = request.getRequestDispatcher("/room.html");
+			v.forward(request, response);
+		}
+		else if(a.equals("Create Payment")){
+			v = request.getRequestDispatcher("/transaction.html");
+			v.forward(request, response);
+		}
+		else if(a.equals("Get Customer")){
+//			 response.getWriter().println("<html>" + "<body>" + "How do you wish to find them? ID, Name, Current " + "<input type=" + "text" + "name= " 
+//	+	"  ""in""    " +   "/>"
+//		    +    "<input type=" + "submit value=" + "Submit />" +  "</body></html>");
+			v = request.getRequestDispatcher("/customer.html");
+			v.forward(request, response);
+//			String b = request.getParameter("find");
+//			
+//			if(b.equals("ID")){
+//				out.println("<html><body>" + "Works" + "</body></html>");
+//			}
+//			else if(b.equals("Name")){
+//				out.println("<html><body>" + "Works" + "</body></html>");
+//			}
+//			else if(b.equals("Current")){
+//				out.println("<html><body>" + "Works" + "</body></html>");
+//			}
+//			else
+//				System.out.println("That's not an option.");
+			
+		}
+		else if(a.equals("Get Transactions")){
+			v = request.getRequestDispatcher("/trans.html");
+			v.forward(request, response);
+		}
+		else if(a.equals("Get Vacancies")){
+			doPost(request, response);
+		}
+		else if(a.equals("Get Reservations")){
+			doPost(request,response);
+		}
+		else{
+			System.out.println("That's not an option.");
+		}
+		
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//RequestDispatcher v = request.getRequestDispatcher("/customer.html");
+		//v.forward(request, response);
+		PrintWriter out = response.getWriter();
+		a = request.getParameter("cmmd");
+		response.setContentType("text/html");
+		//doGet(request, response);
+		
+		if(a.equals("Create Customer")){
+			Customer c = new Customer();
+			c.setfirstName(request.getParameter("first"));
+			c.setlastName(request.getParameter("last"));
+			c.setphoneNumber(Integer.parseInt(request.getParameter("phone")));
+			c.setaddress(request.getParameter("address"));
+			c.setcity(request.getParameter("city"));
+			c.setstate(request.getParameter("state"));
+			c.setzip(Integer.parseInt(request.getParameter("zip")));
+			c.setcheckin(request.getParameter("checkin"));
+			c.setcheckout(request.getParameter("checkout"));
+			
+			boolean z = con.createCustomer(c);
+			if(z == true){
+				response.getWriter().println("<html>" + "<body>" + "Success. Customer Added" 
+					 +  "</body></html>");
+			}else{
+				response.getWriter().println("<html>" + "<body>" + "Error" 
+						 +  "</body></html>");
+			}
+		}
+		else if(a.equals("Reserve Room")){
+			int id = Integer.parseInt(request.getParameter("cid"));
+			int room = Integer.parseInt(request.getParameter("room"));
+		
+			boolean z = con.reserveRoom(id, room);
+			if(z == true){
+				response.getWriter().println("<html>" + "<body>" + "Success.Room Reserved" 
+					 +  "</body></html>");
+			}else{
+				response.getWriter().println("<html>" + "<body>" + "Error" 
+						 +  "</body></html>");
+			}
+		}
+		else if(a.equals("Create Payment")){
+			Transaction t = new Transaction();
+			t.setCId(Integer.parseInt(request.getParameter("cid")));
+			t.setRId(Integer.parseInt(request.getParameter("room"));
+			t.setAmount(Integer.parseInt(request.getParameter("amount"));
+			t.setCCN(Integer.parseInt(request.getParameter("ccn"));
+			t.setEDate(request.getParameter("edate"));
+			
+			boolean z = con.createPayment(t);
+			if(z == true){
+				response.getWriter().println("<html>" + "<body>" + "Success. Payment Created" 
+					 +  "</body></html>");
+			}else{
+				response.getWriter().println("<html>" + "<body>" + "Error" 
+						 +  "</body></html>");
+		}
+		else if(a.equals("Get Customer")){
+//			 response.getWriter().println("<html>" + "<body>" + "How do you wish to find them? ID, Name, Current " + "<input type=" + "text" + "name= " 
+//	+	"  ""in""    " +   "/>"
+//		    +    "<input type=" + "submit value=" + "Submit />" +  "</body></html>");
+			RequestDispatcher v = request.getRequestDispatcher("/customer.html");
+			v.forward(request, response);
+//			String b = request.getParameter("find");
+//			
+//			if(b.equals("ID")){
+//				out.println("<html><body>" + "Works" + "</body></html>");
+//			}
+//			else if(b.equals("Name")){
+//				out.println("<html><body>" + "Works" + "</body></html>");
+//			}
+//			else if(b.equals("Current")){
+//				out.println("<html><body>" + "Works" + "</body></html>");
+//			}
+//			else
+//				System.out.println("That's not an option.");
+			
+		}
+		else if(a.equals("Get Transactions")){
+			List<Transaction> trans = con.getTransactions(Integer.parseInt(request.getParameter("id")));
+			Iterator<Transaction> i = trans.iterator();
+			int index = 0;
+			while(i.hasNext());{
+				response.getWriter().println("<html><body>" + "Transaction Number: " + trans.get(index).getTId() + "\n" + "Customer Id: "
+				+ trans.get(index).getCId() + "Amount" + trans.get(index).getAmount() + "<br>" + "</body></html>");
+				index++;
+		}
+		else if(a.equals("Get Vacancies")){
+			List<Room> rooms = con.getVacancies();
+			Iterator<Room> i = rooms.iterator();
+			int index = 0;
+			while(i.hasNext());{
+			response.getWriter().println("<html><body>" + "Room Number: " + rooms.get(index).getRoomNumber() + "\n" + "Room Type: "
+			+ rooms.get(index).getRoomType() + "<br>" + "</body></html>");
+			index++;
+			
+			}
+		}
+		else if(a.equals("Get Reservations")){
+			List<Room> rooms = con.getReservations();
+			Iterator<Room> i = rooms.iterator();
+			int index = 0;
+			while(i.hasNext());{
+			int id = rooms.get(index).getCurrentO();
+			response.getWriter().println("<html><body>" + "Room Number: " + rooms.get(index).getRoomNumber() + "\n" + "Name: " 
+			+ rooms.get(index).getCurrentO() + "<br>" + "</body></html>");
+			index++;
+		}
+		else{
+			System.out.println("That's not an option.");
+		}
+	}
+
+	/**
+	 * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
+	 */
+	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+	}
+
+	/**
+	 * @see HttpServlet#doDelete(HttpServletRequest, HttpServletResponse)
+	 */
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+	}
+
+}

@@ -1,0 +1,595 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class MySqlConnector {
+	
+	private String url;
+	
+	public MySqlConnector(String url){
+		this.url = url;
+	try{
+		Class.forName("com.mysql.jdbc.Driver").newInstance();
+		System.out.println("JDBC driver registered");
+	} catch (Exception ex) {
+		ex.printStackTrace();
+	}
+	}
+	
+	private Connection getConnection() {
+		String[] temp = this.url.split("/");
+		String dbName = temp[1];
+		try {
+			boolean exists = false;
+			Connection conn = DriverManager
+					.getConnection("jdbc:mysql://localhost/HRS" + "user=root&password=cake");
+
+			System.out.println("Got Mysql database connection");
+			ResultSet rs = conn.getMetaData().getCatalogs();
+			while (rs.next()){
+				if(rs.getString(1).equals(dbName)){
+					conn.setCatalog(dbName);
+					exists = true;
+					ResultSet table = conn.getMetaData().getTables(null, null, "hrs", null);
+					if (!table.next()){
+						PreparedStatement stmt2 = conn.prepareStatement("Create table Customer Information('First Name' varchar(20)," 
+									+ " 'Last Name' varchar(20), " + " 'Phone Number' int(10), " + " 'Billing Address' varchar(35), "
+								    + " 'Billing City' varchar(20), " + " 'Billing State' varchar(3), " + " 'Billing Zip' int(8), "
+									+ " 'Customer Id' int(11) Auto_increment, " + " 'Checkin Date' date, " + " 'Checkout Date' date,"
+								    + " PRIMARY KEY('Customer Id'));");
+						stmt2.executeUpdate();
+						
+						PreparedStatement stmt3 = conn.prepareStatement("Create table Room Info('Room type' enum('Single', 'Double', 'Presidential'),"
+									+ " 'Room Price' enum('100', '150', '300')," + " 'Current Occupant' varchar(20)," + " 'Room Number' int(10)," +
+									" PRIMARY KEY('Room Number')" + "FOREIGN KEY('Customer Id') REFERENCES Customer Information(Customer Id));");
+						stmt3.executeUpdate();
+						
+						PreparedStatement stmt4 = conn.prepareStatement("Create table Transactions ('Transaction Id' int(11)," + " 'Customer Id' int(11)," 
+									+ " 'Room Id' int(11)," + " 'Amount' int(10)," + " 'Credit Card Number' int(11)," + "Expiration Date' date" 
+									+ "PRIMARY KEY('Transaction Id')" + "FOREIGN KEY('Customer Id') REFERENCES Customer Information(Customer Id)"
+								+ "FOREIGN KEY('Room Id') REFERENCES Room Info(Room Number));");
+						stmt4.executeUpdate();
+						
+					}
+				}
+				
+			}
+			if(!exists){
+				PreparedStatement stmt1 =	conn.prepareStatement("CREATE DATABASE " + dbName);
+				stmt1.executeUpdate();
+				conn.setCatalog(dbName);
+				PreparedStatement stmt2 = conn.prepareStatement("Create table Customer Information('First Name' varchar(20)," 
+						+ " 'Last Name' varchar(20), " + " 'Phone Number' int(10), " + " 'Billing Address' varchar(35), "
+					    + " 'Billing City' varchar(20), " + " 'Billing State' varchar(3), " + " 'Billing Zip' int(8), "
+						+ " 'Customer Id' int(11) Auto_increment, " + " 'Checkin Date' date, " + " 'Checkout Date' date,"
+					    + " PRIMARY KEY('Customer Id'));");
+				stmt2.executeUpdate();
+			
+				PreparedStatement stmt3 = conn.prepareStatement("Create table Room Info('Room type' enum('Single', 'Double', 'Presidential'),"
+						+ " 'Room Price' enum('100', '150', '300')," + " 'Current Occupant' int(11) DEFAULT NULL," + " 'Room Number' int(10)," +
+						" PRIMARY KEY('Room Number')" + "FOREIGN KEY('Customer Id') REFERENCES Customer Information(Customer Id));");
+				stmt3.executeUpdate();
+			
+				PreparedStatement stmt4 = conn.prepareStatement("Create table Transactions ('Transaction id' int(11) Auto_increment," + " 'Customer Id' int(11)," 
+						+ " 'Room Id' int(11)," + " 'Amount' int(10)," + " 'Credit Card Number' int(11)," + "Expiration Date' date" 
+						+ "PRIMARY KEY('Transaction Id')" + "FOREIGN KEY('Customer Id') REFERENCES Customer Information(Customer Id)"
+								+ "FOREIGN KEY('Room Id') REFERENCES Room Info(Room Number));");
+				stmt4.executeUpdate();
+			}
+			return conn;
+		} catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}
+		return null;
+	}
+	
+	public boolean createCustomer(Customer customer){
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
+		try{
+			conn = getConnection();
+			
+			stmt = conn.prepareStatement("insert into Customer Information values(?,?,?,?,?,?,?,LAST_INSERT_ID, ?,?)");
+			stmt.setString(1, customer.getfirstName());
+			stmt.setString(2, customer.getlastName());
+			stmt.setInt(3, customer.getphoneNumber());
+			stmt.setString(4, customer.getaddress());
+			stmt.setString(5, customer.getcity());
+			stmt.setString(6, customer.getstate());
+			stmt.setInt(6, customer.getzip());
+			stmt.setString(7, customer.getcheckin());
+			stmt.setString(8, customer.getcheckout());
+			return stmt.executeUpdate() > 0;
+			
+		}catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+			
+		}finally {
+				// it is a good idea to release
+				// resources in a finally{} block
+				// in reverse-order of their creation
+				// if they are no-longer needed
+
+				if (rs != null) {
+					try {
+						rs.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					rs = null;
+				}
+
+				if (stmt != null) {
+					try {
+						stmt.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					stmt = null;
+				}
+				if(conn != null){
+					try {
+						conn.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					conn = null;
+				}
+
+			}
+			return false;
+		}
+	
+	
+	public boolean reserveRoom(int id, int room){
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
+		try{
+			conn = getConnection();
+			
+			stmt = conn.prepareStatement("Update Room Info Set Current Occupant=? where Room Number = ?");
+			stmt.setInt(1, id);
+			stmt.setInt(2, room);
+		   return stmt.executeUpdate() > 0;
+		}catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+			
+		}finally {
+				// it is a good idea to release
+				// resources in a finally{} block
+				// in reverse-order of their creation
+				// if they are no-longer needed
+
+				if (rs != null) {
+					try {
+						rs.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					rs = null;
+				}
+
+				if (stmt != null) {
+					try {
+						stmt.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					stmt = null;
+				}
+				if(conn != null){
+					try {
+						conn.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					conn = null;
+				}
+
+			}
+			return false;
+	}
+	
+	public boolean createPayment(Transaction t){
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
+		try{
+			conn = getConnection();
+			stmt = conn.prepareStatement("insert into Transactions values(Last_Insert_ID, ?,?,?,?,?)");
+			stmt.setInt(1, t.getCId());
+			stmt.setInt(2, t.getRId());
+			stmt.setInt(3, t.getAmount());
+			stmt.setInt(4, t.getCCN());
+			stmt.setString(5, t.getEDate());
+			return stmt.executeUpdate() > 0;
+		}catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+			
+		}finally {
+				// it is a good idea to release
+				// resources in a finally{} block
+				// in reverse-order of their creation
+				// if they are no-longer needed
+
+				if (rs != null) {
+					try {
+						rs.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					rs = null;
+				}
+
+				if (stmt != null) {
+					try {
+						stmt.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					stmt = null;
+				}
+				if(conn != null){
+					try {
+						conn.close();
+					} catch (SQLException sqlEx) {
+					} // ignore
+
+					conn = null;
+				}
+
+			}
+			return false;
+	}
+	
+	public Customer getCustomer(int id){
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
+		try{
+			Customer c = new Customer();
+			conn = getConnection();
+			
+			stmt = conn.prepareStatement("select * from Customer Information where Customer Id = ?");
+			stmt.setInt(1, id);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				c.setfirstName(rs.getString("First Name"));
+				c.setlastName(rs.getString("Last Name"));
+				c.setphoneNumber(rs.getInt("Phone Number"));
+				c.setaddress(rs.getString("Billing Address"));
+				c.setcity(rs.getString("Billing City"));
+				c.setstate(rs.getString("Billing State"));
+				c.setzip(rs.getInt("Billing Zip"));
+				c.setid(rs.getInt("Customer Id"));
+				c.setcheckin(rs.getString("Checkin Date"));
+				c.setcheckout(rs.getString("Checkout Date"));
+			}
+			return c;
+		}catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+			// it is a good idea to release
+			// resources in a finally{} block
+			// in reverse-order of their creation
+			// if they are no-longer needed
+
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				stmt = null;
+			}
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				conn = null;
+			}
+
+		}
+		return null;
+	}
+	public List<Customer> getCustomerByName(String name){
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
+		try{
+			List<Customer> customers = new ArrayList<Customer>();
+			conn = getConnection();
+			
+			stmt = conn.prepareStatement("select * from Customer Information where First Name = ? UNION select * from Customer Information where Last Name = ?");
+			stmt.setString(1, name);
+			stmt.setString(2, name);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				Customer c = new Customer();
+				c.setfirstName(rs.getString("First Name"));
+				c.setlastName(rs.getString("Last Name"));
+				c.setphoneNumber(rs.getInt("Phone Number"));
+				c.setaddress(rs.getString("Billing Address"));
+				c.setcity(rs.getString("Billing City"));
+				c.setstate(rs.getString("Billing State"));
+				c.setzip(rs.getInt("Billing Zip"));
+				c.setid(rs.getInt("Customer Id"));
+				c.setcheckin(rs.getString("Checkin Date"));
+				c.setcheckout(rs.getString("Checkout Date"));
+				customers.add(c);
+			}
+			return customers;
+		}catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+			// it is a good idea to release
+			// resources in a finally{} block
+			// in reverse-order of their creation
+			// if they are no-longer needed
+
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				stmt = null;
+			}
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				conn = null;
+			}
+
+		}
+		return null;
+	}
+	
+	public List<Customer> getCustomersCurrent(){
+		
+	}
+	
+	public List<Transaction> getTransactions(int id){
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
+		try{
+			List<Transaction> trans = new ArrayList<Transaction>();
+			conn = getConnection();
+			
+			stmt = conn.prepareStatement("select * from Transactions where Customer Id = ?");
+			stmt.setInt(1, id);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				Transaction t = new Transaction();
+				t.setTId(rs.getInt("Transaction Id"));
+				t.setCId(rs.getInt("Customer Id"));
+				t.setRId(rs.getInt("Room Id"));
+				t.setAmount(rs.getInt("Amount"));
+				t.setCCN(rs.getInt("Credit Card Number"));
+				t.setEDate(rs.getString("Expiration Date"));
+				trans.add(t);
+			}
+			return trans;
+		}catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+			// it is a good idea to release
+			// resources in a finally{} block
+			// in reverse-order of their creation
+			// if they are no-longer needed
+
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				stmt = null;
+			}
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				conn = null;
+			}
+
+		}
+		return null;
+		
+	}
+	
+	public List<Room> getVacancies(){
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
+		try{
+			List<Room> rooms = new ArrayList<Room>();
+			conn = getConnection();
+			
+			stmt = conn.prepareStatement("Select * from Room Info where Current Occupant = ?");
+			stmt.setString(1, null);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				Room r = new Room();
+				r.setRoomType(rs.getString("Room Type"));
+				r.setRoomPrice(rs.getInt("Room Price"));
+				r.setCurrentO(rs.getInt("Current Occupant"));
+				r.setRoomNumber(rs.getInt("Room Number"));
+				rooms.add(r);
+			}
+			return rooms;
+		}catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+			// it is a good idea to release
+			// resources in a finally{} block
+			// in reverse-order of their creation
+			// if they are no-longer needed
+
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				stmt = null;
+			}
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				conn = null;
+			}
+
+		}
+		return null;
+		
+	}
+	
+	public List<Room> getReservations(){
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		Connection conn = null;
+		
+		try{
+			List<Room> rooms = new ArrayList<Room>();
+			conn = getConnection();
+			
+			stmt = conn.prepareStatement("Select * from Room Info where where <> ?");
+			stmt.setString(1, null);
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				Room r = new Room();
+				r.setRoomType(rs.getString("Room Type"));
+				r.setRoomPrice(rs.getInt("Room Price"));
+				r.setCurrentO(rs.getInt("Current Occupant"));
+				r.setRoomNumber(rs.getInt("Room Number"));
+				rooms.add(r);
+			}
+			return rooms;
+		}catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		} finally {
+			// it is a good idea to release
+			// resources in a finally{} block
+			// in reverse-order of their creation
+			// if they are no-longer needed
+
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				stmt = null;
+			}
+			if(conn != null){
+				try {
+					conn.close();
+				} catch (SQLException sqlEx) {
+				} // ignore
+
+				conn = null;
+			}
+
+		}
+		return null;
+		
+	}
+}
